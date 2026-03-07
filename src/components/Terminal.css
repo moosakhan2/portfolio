@@ -1,0 +1,275 @@
+/* ─── Terminal Shell ─────────────────────────────────────────────────────── */
+
+.terminal {
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transition: opacity 0.5s ease 0.1s;
+  font-family: "JetBrains Mono", "Fira Code", "Courier New", monospace;
+  font-size: 0.9rem;
+}
+
+.terminal--visible {
+  opacity: 1;
+}
+
+/* ─── Header Bar ─────────────────────────────────────────────────────────── */
+
+.terminal__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 1rem;
+  background: #1a1a1a;
+  border-bottom: 1px solid #222;
+  flex-shrink: 0;
+  border-radius: 8px 8px 0 0;
+}
+
+.terminal__dots {
+  display: flex;
+  gap: 6px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.dot--red    { background: #ff5f57; }
+.dot--yellow { background: #febc2e; }
+.dot--green  { background: #28c840; }
+
+.terminal__title {
+  color: #555;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  flex: 1;
+  text-align: center;
+}
+
+/* ─── Body ───────────────────────────────────────────────────────────────── */
+
+.terminal__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.2rem 1.4rem 1.2rem;
+  cursor: text;
+  scrollbar-width: thin;
+  scrollbar-color: #333 transparent;
+}
+
+.terminal__body::-webkit-scrollbar { width: 6px; }
+.terminal__body::-webkit-scrollbar-track { background: transparent; }
+.terminal__body::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+/* ─── Lines ──────────────────────────────────────────────────────────────── */
+
+.line {
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 1.65em;
+}
+
+.line--text    { color: #e0e0e0; }
+.line--green   { color: #4ade80; }
+.line--cyan    { color: #22d3ee; }
+.line--yellow  { color: #fbbf24; }
+.line--dim     { color: #555; }
+.line--error   { color: #f87171; }
+.line--prompt  { display: flex; align-items: baseline; flex-wrap: wrap; }
+
+/* ─── Prompt ─────────────────────────────────────────────────────────────── */
+
+.prompt {
+  color: #4ade80;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* ─── Input ──────────────────────────────────────────────────────────────── */
+
+.terminal__input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #4ade80;
+  font-family: inherit;
+  font-size: inherit;
+  caret-color: #4ade80;
+  width: 60ch;
+  max-width: calc(100% - 22ch);
+}
+
+.input-line {
+  gap: 0;
+}
+
+/* ─── History ────────────────────────────────────────────────────────────── */
+
+.history-entry {
+  margin-bottom: 0.6rem;
+}
+
+/* ─── Clickable commands ─────────────────────────────────────────────────── */
+
+.cmd-btn {
+  background: none;
+  border: none;
+  color: #4ade80;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+  display: inline;
+}
+
+.cmd-btn:hover {
+  color: #86efac;
+}
+
+/* ─── Links ──────────────────────────────────────────────────────────────── */
+
+.terminal-link {
+  color: #22d3ee;
+  text-decoration: none;
+  margin-right: 0.8rem;
+}
+
+.terminal-link:hover {
+  text-decoration: underline;
+  color: #67e8f9;
+}
+
+/* ─── ASCII Banner ───────────────────────────────────────────────────────── */
+
+.line--ascii {
+  color: #4ade80;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+@media (max-width: 600px) {
+  .line--ascii {
+    font-size: 0.45rem;
+    letter-spacing: 0;
+    line-height: 1.4;
+  }
+}
+
+/* ─── Matrix ─────────────────────────────────────────────────────────────── */
+
+.matrix-line {
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  opacity: 0.85;
+}
+
+/* ─── Easter Egg Hover Words ─────────────────────────────────────────────── */
+
+.easter-word {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+  cursor: default;
+  position: relative;
+  display: inline-block;
+  transition: color 0.15s;
+}
+
+/* Chess — chess piece floats up */
+.easter-chess::after {
+  content: "♟";
+  position: absolute;
+  left: 50%;
+  top: -0.1em;
+  transform: translateX(-50%) translateY(0);
+  opacity: 0;
+  pointer-events: none;
+  font-size: 1.1em;
+}
+.easter-chess:hover { color: #fbbf24; }
+.easter-chess:hover::after { animation: float-icon 0.9s ease forwards; }
+
+/* Basketball — word bounces */
+.easter-basketball:hover {
+  color: #f97316;
+  animation: bounce-word 0.5s ease infinite;
+}
+
+/* Minecraft — blocky pixel glow */
+.easter-minecraft:hover {
+  color: #86efac;
+  text-shadow: 2px 2px 0 #166534, -1px 0 0 #166534;
+  letter-spacing: 0.04em;
+}
+
+/* Cuisine — food floats up */
+.easter-cuisine::after {
+  content: "🍜";
+  position: absolute;
+  left: 50%;
+  top: -0.1em;
+  transform: translateX(-50%) translateY(0);
+  opacity: 0;
+  pointer-events: none;
+  font-size: 1.1em;
+}
+.easter-cuisine:hover { color: #fbbf24; }
+.easter-cuisine:hover::after { animation: float-icon 0.9s ease forwards; }
+
+@keyframes float-icon {
+  0%   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-18px); }
+}
+
+@keyframes bounce-word {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-4px); }
+}
+
+/* ─── Light Mode ─────────────────────────────────────────────────────────── */
+
+.light-mode {
+  background: #f5f5f0;
+}
+.light-mode .terminal__header {
+  background: #e0e0da;
+  border-color: #ccc;
+}
+.light-mode .terminal__body {
+  background: #f5f5f0;
+  scrollbar-color: #bbb transparent;
+}
+.light-mode .terminal__title      { color: #999; }
+.light-mode .line--text           { color: #1a1a1a; }
+.light-mode .line--green          { color: #16a34a; }
+.light-mode .line--ascii          { color: #16a34a; }
+.light-mode .line--cyan           { color: #0891b2; }
+.light-mode .line--yellow         { color: #d97706; }
+.light-mode .line--dim            { color: #999; }
+.light-mode .line--error          { color: #dc2626; }
+.light-mode .prompt               { color: #16a34a; }
+.light-mode .terminal__input      { color: #16a34a; caret-color: #16a34a; }
+.light-mode .cmd-btn              { color: #16a34a; }
+.light-mode .cmd-btn:hover        { color: #15803d; }
+.light-mode .terminal-link        { color: #0891b2; }
+.light-mode .terminal-link:hover  { color: #0e7490; }
+.light-mode .matrix-line          { color: #16a34a; }
+
+/* ─── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  .terminal__body { padding: 0.8rem; }
+  .terminal { font-size: 0.8rem; }
+  .terminal__input { max-width: calc(100% - 18ch); }
+}
