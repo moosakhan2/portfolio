@@ -75,6 +75,25 @@ function drawCrab(
   ctx.fillRect(x + 14, y + 2,   2,  2)           // right eye
 }
 
+// ── API helpers (module-level, no closure deps) ───────────────────────────────
+async function fetchLb(): Promise<LBEntry[]> {
+  try {
+    const res = await fetch('/api/leaderboard')
+    return res.ok ? res.json() : []
+  } catch { return [] }
+}
+
+async function submitScore(name: string, score: number): Promise<LBEntry[] | null> {
+  try {
+    const res = await fetch('/api/leaderboard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, score }),
+    })
+    return res.ok ? res.json() : null
+  } catch { return null }
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function MiniGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -100,18 +119,15 @@ export default function MiniGame() {
   const [dead, setDead] = useState(0)
   const [lb,   setLb]  = useState<LBEntry[]>([])
   const [name, setName] = useState('')
-  const [pb,   setPb]  = useState(0)   // session personal best
+  const [pb,     setPb]    = useState(0)    // session personal best
+  const [saving, setSaving] = useState(false)
 
-  // Load leaderboard on mount
+  // Load global leaderboard on mount
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('mk_runner_lb')
-      if (raw) {
-        const parsed = JSON.parse(raw) as LBEntry[]
-        setLb(parsed)
-        hiR.current = parsed[0]?.score ?? 0
-      }
-    } catch {}
+    fetchLb().then(data => {
+      setLb(data)
+      hiR.current = data[0]?.score ?? 0
+    })
   }, [])
 
   // Reset all ref-based state to idle
@@ -129,44 +145,28 @@ export default function MiniGame() {
     setUi('idle')
   }, [])
 
-  // Write to localStorage — only upserts if score beats existing entry for that name
-  const persistScore = useCallback((n: string, s: number) => {
-    try {
-      const raw = localStorage.getItem('mk_runner_lb')
-      const entries: LBEntry[] = raw ? JSON.parse(raw) : []
-      const idx = entries.findIndex(e => e.name === n)
-      if (idx >= 0) {
-        if (s > entries[idx].score) entries[idx].score = s
-        else return  // didn't beat PB — don't touch leaderboard
-      } else {
-        entries.push({ name: n, score: s })
-      }
-      entries.sort((a, b) => b.score - a.score)
-      const top5 = entries.slice(0, 5)
-      localStorage.setItem('mk_runner_lb', JSON.stringify(top5))
-      hiR.current = top5[0]?.score ?? 0
-      setLb(top5)
-    } catch {}
-  }, [])
-
-  // First save: record name for the session and persist score
-  const save = useCallback(() => {
+  // First save: lock in name, submit score, stay on dead screen so user sees leaderboard
+  const save = useCallback(async () => {
+    if (saving) return
     const n = name.trim() || 'Anon'
     sessionNameR.current = n
     setPb(dead)
-    persistScore(n, dead)
     setName('')
-    reset()
-  }, [name, dead, persistScore, reset])
+    setSaving(true)
+    const updated = await submitScore(n, dead)
+    if (updated) { setLb(updated); hiR.current = updated[0]?.score ?? 0 }
+    setSaving(false)
+    // Intentionally no reset() — overlay stays open, user clicks Retry to play again
+  }, [name, dead, saving])
 
-  // Returning player: auto-persist if they beat their session PB
+  // Returning player: auto-submit on every death; server ignores if not a PB
   useEffect(() => {
     if (ui !== 'dead' || !sessionNameR.current) return
-    if (dead > pb) {
-      persistScore(sessionNameR.current, dead)
-      setPb(dead)
-    }
-  }, [ui, dead, pb, persistScore])
+    submitScore(sessionNameR.current, dead).then(updated => {
+      setPb(prev => Math.max(prev, dead))
+      if (updated) { setLb(updated); hiR.current = updated[0]?.score ?? 0 }
+    })
+  }, [ui, dead])
 
   // Jump / start
   const jump = useCallback(() => {
@@ -346,14 +346,15 @@ export default function MiniGame() {
                 className="flex-1 bg-transparent border border-[var(--border-md)] px-3 py-1.5 font-sans text-sm text-ink placeholder:text-muted focus:outline-none focus:border-accent"
               />
               <button
-                onClick={save}
-                className="bg-ink text-cream font-sans text-xs px-4 py-1.5 hover:bg-accent transition-colors duration-200"
+                onClick={() => save()}
+                disabled={saving}
+                className="bg-ink text-cream font-sans text-xs px-4 py-1.5 hover:bg-accent transition-colors duration-200 disabled:opacity-40"
               >
-                Save
+                {saving ? '…' : 'Save'}
               </button>
             </div>
           ) : (
-            /* ── Returning player: show PB comparison + retry ────────────── */
+            /* ── Returning player: PB line + retry ───────────────────────── */
             <div className="flex items-center justify-between mb-4">
               <span className="font-sans text-xs text-muted">
                 {dead > pb
@@ -370,22 +371,25 @@ export default function MiniGame() {
             </div>
           )}
 
-          {lb.length > 0 && (
-            <>
-              <p className="font-sans text-[10px] uppercase tracking-widest text-muted mb-2">
-                Leaderboard
-              </p>
-              <div className="space-y-1">
-                {lb.map((e, i) => (
-                  <div key={i} className="flex justify-between">
-                    <span className="font-mono text-xs text-muted">
-                      {i + 1}.&nbsp;{e.name}
-                    </span>
-                    <span className="font-mono text-xs text-accent">{e.score}</span>
-                  </div>
-                ))}
-              </div>
-            </>
+          {/* Leaderboard — always visible so first-timers see it after saving */}
+          <p className="font-sans text-[10px] uppercase tracking-widest text-muted mb-2">
+            Leaderboard
+          </p>
+          {lb.length === 0 ? (
+            <p className="font-mono text-xs text-muted italic">No scores yet — be the first!</p>
+          ) : (
+            <div className="space-y-1">
+              {lb.slice(0, 5).map((e, i) => (
+                <div key={i} className="flex justify-between">
+                  <span className={`font-mono text-xs ${e.name === sessionNameR.current ? 'text-accent' : 'text-muted'}`}>
+                    {i + 1}.&nbsp;{e.name}
+                  </span>
+                  <span className={`font-mono text-xs ${e.name === sessionNameR.current ? 'text-accent' : 'text-muted'}`}>
+                    {e.score}
+                  </span>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}
