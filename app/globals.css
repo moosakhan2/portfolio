@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg:            #F7F4EE;
+    --bg-card:       #FFFFFF;
+    --bg-nav:        rgba(247, 244, 238, 0.96);
+    --ink:           #1C1A16;
+    --muted:         #6B6358;
+    --light:         #8A8070;
+    --amber:         #B8864E;
+    --border:        rgba(28, 26, 22, 0.08);
+    --border-md:     rgba(28, 26, 22, 0.12);
+    --border-strong: rgba(28, 26, 22, 0.2);
+    --tag-bg:        #F7F4EE;
+    --contact-bg:    #1C1A16;
+    --contact-fg:    #F7F4EE;
+    --shadow-card:   rgba(28, 26, 22, 0.09);
+  }
+
+  html.dark {
+    --bg:            #141210;
+    --bg-card:       #1E1B17;
+    --bg-nav:        rgba(20, 18, 16, 0.96);
+    --ink:           #F0EDE6;
+    --muted:         #9A8E7E;
+    --light:         #6B6050;
+    --amber:         #C49A5C;
+    --border:        rgba(247, 244, 238, 0.07);
+    --border-md:     rgba(247, 244, 238, 0.12);
+    --border-strong: rgba(247, 244, 238, 0.2);
+    --tag-bg:        #252018;
+    --contact-bg:    #0E0D0B;
+    --contact-fg:    #F0EDE6;
+    --shadow-card:   rgba(0, 0, 0, 0.3);
+  }
+
+  *, *::before, *::after {
+    border-radius: 0 !important;
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.15s ease;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-cream text-ink font-sans font-light;
+    font-optical-sizing: auto;
+  }
+
+  ::selection {
+    background-color: var(--amber);
+    color: var(--bg);
+  }
+}
+
+@layer components {
+  .section-label {
+    @apply text-xs font-sans uppercase tracking-[0.15em] text-accent mb-3;
+  }
+
+  .section-title {
+    @apply font-display font-black text-[38px] leading-tight tracking-tight text-ink mb-12;
+  }
+
+  .project-card {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .project-card .amber-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--amber);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.35s ease;
+  }
+
+  .project-card:hover .amber-bar {
+    transform: scaleX(1);
+  }
+}

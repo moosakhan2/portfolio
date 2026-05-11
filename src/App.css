@@ -1,8 +1,0 @@
-/* App-level layout — terminal fills viewport */
-#root {
-  height: 100vh;
-  width: 100%;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
